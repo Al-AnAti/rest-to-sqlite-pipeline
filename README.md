@@ -1,22 +1,87 @@
-# Title
+# CI/CD Capstone Project
 
-[![matrix ci](https://github.com/Al-AnAti/CI-CD-capstone-project/actions/workflows/ci.yml/badge.svg)](https://github.com/Al-AnAti/CI-CD-capstone-project/actions/workflows/ci.yml)
+A small Python application that retrieves data from a REST API and stores it in a SQLite database. The project was built as a practical exercise in GitHub Actions, cross-platform CI, and reliable data ingestion.
 
-## System Architecture & Engineering Principles
+## Tech Stack
 
-This project serves as a validation pipeline to demonstrate robust CI/CD practices, automated cross-OS testing, and safe database operations. The architecture was designed around three core DevOps principles:
+- Python
+- Requests
+- SQLite
+- GitHub Actions
 
-### 1. Matrix Automation & Cross-OS Compatibility
-The CI/CD pipeline utilizes a GitHub Actions Matrix Strategy to ensure absolute cross-platform stability. On every repository push, the workflow spins up 6 concurrent runners:
-* **Operating Systems:** `ubuntu-latest`, `windows-latest`
-* **Environments:** Python 3.10, 3.11, 3.12
+## How It Works
 
-To support this OS-agnostic execution, the application utilizes dynamic absolute pathing via Python's `pathlib`. This eliminates brittle relative paths and hardcoded slashes, ensuring the database correctly initializes in the exact execution directory regardless of whether the host OS uses forward slashes (Linux) or backslashes (Windows).
+The application:
 
-### 2. Idempotent Database Operations
-In an automated pipeline, scripts are executed repeatedly (via schedules, triggers, or retries). The database interactions are strictly idempotent, meaning the script can run 1 time or 10,000 times without generating duplicate records or corrupting the schema.
-* **Mechanism:** The SQLite schema strictly enforces a `PRIMARY KEY` constraint on the dataset ID. The ingestion engine executes `INSERT OR IGNORE` parameterized queries.
-* **Result:** Re-running the pipeline safely updates the local state without throwing constraint violation errors or duplicating existing ingested payload data.
+1. Fetches posts from JSONPlaceholder.
+2. Validates the HTTP response.
+3. Parses the returned JSON data.
+4. Creates a SQLite database and `posts` table if they do not exist.
+5. Inserts the retrieved records while ignoring duplicate IDs.
 
-### 3. Fail-Fast Integration
-Silent failures in automated pipelines lead to false-positive green builds. The API extraction layer is designed to "fail loudly." If the external data source returns a 404 or 500-level HTTP status, the exception is intentionally re-raised to force a non-zero exit code (`1`). This ensures the GitHub Actions runner immediately halts and correctly flags the job as a failure, preventing compromised data from advancing down the pipeline.
+The database is stored relative to the script location using Python's `pathlib`, allowing the application to run consistently across operating systems.
+
+## CI Pipeline
+
+GitHub Actions runs the application automatically on every push using a matrix strategy.
+
+The pipeline tests:
+
+| Operating System | Python Versions |
+|---|---|
+| Ubuntu | 3.10, 3.11, 3.12 |
+| Windows | 3.10, 3.11, 3.12 |
+
+This results in **6 CI environments** being tested for each push.
+
+The workflow:
+
+1. Checks out the repository.
+2. Installs the selected Python version.
+3. Installs the required dependency.
+4. Runs the application.
+
+A failure in any matrix configuration causes the corresponding CI job to fail.
+
+## Engineering Decisions
+
+### Cross-platform paths
+
+`pathlib` is used instead of hardcoded filesystem paths. This keeps path handling platform-independent and allows the same script to run on both Windows and Linux.
+
+### Duplicate-safe database insertion
+
+The `id` column is used as the primary key, while records are inserted using `INSERT OR IGNORE`.
+
+This allows the script to be executed repeatedly without failing when a record with the same ID already exists.
+
+### Parameterized SQL
+
+SQL parameters are passed separately from the query rather than constructing SQL statements through string formatting. This is safer and avoids SQL injection risks when handling external data.
+
+### Fail-fast behavior
+
+HTTP errors are re-raised after being classified as client/server errors. Because the exception is not swallowed, the Python process exits unsuccessfully and GitHub Actions reports the run as failed.
+
+## Running Locally
+
+Clone the repository and run:
+
+```bash
+pip install requests
+python main.py
+```
+
+The script will create `api_data.db` in the same directory as the application.
+
+## Future Improvements
+
+Possible improvements include:
+
+- Add automated unit tests with `pytest`
+- Add dependency pinning
+- Add linting and formatting checks
+- Add test coverage reporting
+- Cache Python dependencies in GitHub Actions
+- Separate the application into modules
+- Add a build/deployment stage to turn the CI workflow into a complete CI/CD pipeline
