@@ -1,0 +1,19 @@
+name: matrix ci
+on: push
+
+jobs:
+    test:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest]
+                python-version: ['3.10', '3.11', '3.12']
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: checkout
+              uses: actions/checkout@v4
+            - name: python install
+              uses: actions/setup-python@v5
+              with:
+                python-version: ${{ matrix.python-version }}   
+            - run: pip install requests
+            - run: python main.py
