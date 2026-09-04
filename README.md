@@ -1,5 +1,7 @@
 # CI/CD Capstone Project
 
+[![CI](https://github.com/Al-AnAti/CI-CD-capstone-project/actions/workflows/ci.yml/badge.svg)](https://github.com/Al-AnAti/CI-CD-capstone-project/actions/workflows/ci.yml)
+
 A small Python application that retrieves data from a REST API and stores it in a SQLite database. The project was built as a practical exercise in GitHub Actions, cross-platform CI, and reliable data ingestion.
 
 ## Tech Stack
@@ -19,7 +21,7 @@ The application:
 4. Creates a SQLite database and `posts` table if they do not exist.
 5. Inserts the retrieved records while ignoring duplicate IDs.
 
-The database is stored relative to the script location using Python's `pathlib`, allowing the application to run consistently across operating systems.
+The database path is resolved relative to the script location using Python's `pathlib`, allowing the application to run consistently across operating systems.
 
 ## CI Pipeline
 
@@ -45,11 +47,11 @@ A failure in any matrix configuration causes the corresponding CI job to fail.
 
 ## Engineering Decisions
 
-### Cross-platform paths
+### Cross-Platform Paths
 
 `pathlib` is used instead of hardcoded filesystem paths. This keeps path handling platform-independent and allows the same script to run on both Windows and Linux.
 
-### Duplicate-safe database insertion
+### Duplicate-Safe Database Insertion
 
 The `id` column is used as the primary key, while records are inserted using `INSERT OR IGNORE`.
 
@@ -59,7 +61,7 @@ This allows the script to be executed repeatedly without failing when a record w
 
 SQL parameters are passed separately from the query rather than constructing SQL statements through string formatting. This is safer and avoids SQL injection risks when handling external data.
 
-### Fail-fast behavior
+### Fail-Fast Behavior
 
 HTTP errors are re-raised after being classified as client/server errors. Because the exception is not swallowed, the Python process exits unsuccessfully and GitHub Actions reports the run as failed.
 
