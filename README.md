@@ -1,4 +1,4 @@
-# CI/CD Capstone Project
+# REST-to-SQLite Pipeline
 
 [![CI](https://github.com/Al-AnAti/CI-CD-capstone-project/actions/workflows/ci.yml/badge.svg)](https://github.com/Al-AnAti/CI-CD-capstone-project/actions/workflows/ci.yml)
 
